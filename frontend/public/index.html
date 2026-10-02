@@ -4,24 +4,65 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#070907" />
-        <title>A Paso Ligero .com — Web de Músicas Militares</title>
-        <meta name="description" content="Web de músicas y cultura militar. Canciones de paso ligero, himnos de las Fuerzas Armadas Españolas, toques de corneta, lemas de unidades y muchas otras curiosidades." />
+        <title>A Paso Ligero: Canciones e himnos militares de España</title>
+        <meta name="description" content="Archivo de música militar española: letras de canciones de paso ligero, himnos, toques de corneta, marchas y lemas de unidades." />
         <meta name="keywords" content="musica militar, canciones militares, canciones para correr, canciones de paso ligero, lemas de unidades, lemas, paso ligero, himnos, ejercito, toques de corneta, corneta" />
         <meta name="author" content="Álvar Barrios Martínez" />
         <meta name="robots" content="all" />
-        <meta property="og:title" content="A Paso Ligero .com — Web de Músicas Militares" />
-        <meta property="og:description" content="Archivo de músicas militares: canciones de paso ligero, himnos, toques de corneta y lemas de unidades de las Fuerzas Armadas Españolas." />
+        <link rel="canonical" href="https://www.apasoligero.com/" />
+        <meta property="og:title" content="A Paso Ligero: Canciones e himnos militares de España" />
+        <meta property="og:description" content="Archivo de música militar española: letras de canciones de paso ligero, himnos, toques de corneta, marchas y lemas de unidades." />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="%PUBLIC_URL%/assets/img/corneta.jpg" />
+        <meta property="og:url" content="https://www.apasoligero.com/" />
+        <meta property="og:site_name" content="A Paso Ligero" />
+        <meta property="og:image" content="https://www.apasoligero.com/assets/img/corneta.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="A Paso Ligero: Canciones e himnos militares de España" />
+        <meta name="twitter:description" content="Archivo de música militar española: letras de canciones de paso ligero, himnos, toques de corneta, marchas y lemas de unidades." />
+        <meta name="twitter:image" content="https://www.apasoligero.com/assets/img/corneta.jpg" />
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@graph": [
+                    {
+                        "@type": "WebSite",
+                        "@id": "https://www.apasoligero.com/#website",
+                        "url": "https://www.apasoligero.com/",
+                        "name": "A Paso Ligero",
+                        "description": "Archivo de música militar española: canciones de paso ligero, himnos, toques de corneta, marchas y lemas de unidades.",
+                        "inLanguage": "es",
+                        "author": { "@id": "https://www.apasoligero.com/#author" }
+                    },
+                    {
+                        "@type": "Person",
+                        "@id": "https://www.apasoligero.com/#author",
+                        "name": "Álvar Barrios Martínez",
+                        "url": "https://www.apasoligero.com/"
+                    }
+                ]
+            }
+        </script>
         <link rel="icon" type="image/png" href="%PUBLIC_URL%/favicon-64.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400;1,500;1,600&display=swap" rel="stylesheet" />
+        <link
+            rel="preload"
+            as="style"
+            href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400;1,500;1,600&display=swap"
+            onload="this.onload=null;this.rel='stylesheet'"
+        />
+        <noscript>
+            <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400;1,500;1,600&display=swap" rel="stylesheet" />
+        </noscript>
         <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
-        <script src="https://assets.emergent.sh/scripts/emergent-main.js"></script>
+        <script async src="https://assets.emergent.sh/scripts/emergent-main.js"></script>
     </head>
     <body>
-        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <noscript>
+            <h1>A Paso Ligero: canciones e himnos militares de España</h1>
+            <p>Archivo de canciones de paso ligero, himnos, toques de corneta, marchas y lemas de unidades.</p>
+            You need to enable JavaScript to run this app.
+        </noscript>
         <div id="root"></div>
         <!--
       This HTML file is a template.
@@ -34,6 +75,9 @@
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
         <script>
+            window.aplEnableAnalytics = function () {
+                if (window.__aplAnalyticsStarted) return;
+                window.__aplAnalyticsStarted = true;
             !(function (t, e) {
                 var o, n, p, r;
                 e.__SV ||
@@ -99,10 +143,18 @@
                 api_host: "https://ap.emergent.sh",
                 person_profiles: "identified_only", // or 'always' to create profiles for anonymous users as well,
                 session_recording: {
-                    recordCrossOriginIframes: true,
+                    maskAllInputs: true,
                     capturePerformance: false,
                 },
             });
+            };
+            try {
+                if (localStorage.getItem("apl_cookie_consent") === "accepted") {
+                    window.aplEnableAnalytics();
+                }
+            } catch (error) {
+                console.error("No se pudo consultar el consentimiento de analítica.", error);
+            }
         </script>
     </body>
 </html>

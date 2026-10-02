@@ -62,6 +62,7 @@
     "zod": "3.24.4"
   },
   "scripts": {
+    "prebuild": "node scripts/generate-sitemap.js",
     "start": "craco start",
     "build": "craco build",
     "test": "craco test"

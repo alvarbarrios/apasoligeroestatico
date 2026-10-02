@@ -25,9 +25,11 @@ import Firma from "@/pages/Firma";
 import Admin from "@/pages/Admin";
 import PrintSheet from "@/pages/PrintSheet";
 import NotFound from "@/pages/NotFound";
+import Privacy from "@/pages/Privacy";
 import { AuthProvider } from "@/context/AuthContext";
 import { ArchiveProvider, useArchive } from "@/context/ArchiveContext";
 import { IS_STATIC } from "@/lib/static";
+import CookieConsent from "@/components/CookieConsent";
 
 function ScrollManager() {
   const { pathname } = useLocation();
@@ -94,11 +96,13 @@ function Shell() {
           <Route path="/libro-de-visitas/firma/:id" element={<Firma />} />
           <Route path="/enlaces" element={<Enlaces />} />
           <Route path="/contacto" element={<Contacto />} />
+          <Route path="/privacidad-cookies" element={<Privacy />} />
           {!IS_STATIC && <Route path="/admin" element={<Admin />} />}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
       <Footer />
+      <CookieConsent />
       <PlayerBar />
       <Toaster
         theme="dark"

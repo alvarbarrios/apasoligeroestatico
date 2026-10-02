@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
 import { Send, Mail, Loader2, CheckCircle2 } from "lucide-react";
@@ -192,6 +193,10 @@ export default function Contacto() {
             </button>
             <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.2em] text-khaki">
               {IS_STATIC ? "Se abrirá su programa de correo con el mensaje preparado." : "El mensaje se entrega directamente al buzón del autor."}
+            </p>
+            <p className="mt-2 text-xs text-sage">
+              Los datos se utilizarán para atender su mensaje.{" "}
+              <Link to="/privacidad-cookies" className="text-brass underline">Consulte la política de privacidad.</Link>
             </p>
             </>
             )}
