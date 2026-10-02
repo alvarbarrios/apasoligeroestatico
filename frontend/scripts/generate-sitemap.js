@@ -72,6 +72,25 @@ const sitemapEntries = [...routes.keys()]
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapEntries}\n</urlset>\n`;
 fs.writeFileSync(path.join(publicDir, "sitemap.xml"), sitemap);
 
+const redirects = [];
+if (process.env.REACT_APP_STATIC !== "true" && process.env.REACT_APP_BACKEND_URL) {
+  for (const route of routes.keys()) {
+    const source = route === "/" ? "/" : route;
+    const destination = route === "/" ? "/index.html" : `${route}/index.html`;
+    redirects.push(`${source} ${destination} 200`);
+  }
+
+  redirects.push(
+    "/admin /index.html 200",
+    "/libro-de-visitas/firma/* /index.html 200",
+    "/canciones/paso-ligero/* /index.html 200",
+    "/canciones/otras/* /index.html 200",
+    "/canciones/himnos/* /index.html 200",
+    "/imprimir/* /index.html 200",
+  );
+}
+fs.writeFileSync(path.join(publicDir, "_redirects"), `${redirects.join("\n")}${redirects.length ? "\n" : ""}`);
+
 if (process.argv.includes("--postbuild")) {
   const templatePath = path.join(buildDir, "index.html");
   const template = fs.readFileSync(templatePath, "utf8");

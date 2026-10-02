@@ -52,15 +52,46 @@ Pulse **Save and Deploy**. En 2–4 minutos tendrá la URL `https://<proyecto>.p
 Pages → su proyecto → **Custom domains → Set up a custom domain** → `www.apasoligero.com`.
 Si el DNS del dominio ya está en Cloudflare, el registro CNAME se crea solo.
 
+La dirección raíz `apasoligero.com` también debe resolver para que los visitantes que omitan
+`www` lleguen al sitio. En Cloudflare, añada el dominio raíz como zona y configure sus
+nameservers en el registrador; una vez activa la zona, añada `apasoligero.com` como dominio
+personalizado del proyecto Pages. Después, cree una regla de redirección permanente en
+**Rules → Redirect Rules**: cuando el host sea `apasoligero.com`, redirija a
+`https://www.apasoligero.com` conservando la ruta y la consulta. No cambie los nameservers
+sin confirmar primero que los demás registros del dominio se han migrado.
+
 ## Notas técnicas
-- `frontend/public/_redirects` contiene `/* /index.html 200` para que las rutas de la SPA
-  (`/canciones/himnos/tierra/legion`, `/lemas/tierra`, …) funcionen al recargar o compartir enlaces.
+- `frontend/public/404.html` es la página 404 real de Pages; las rutas inexistentes no deben
+  responder con la portada y estado 200. El generador de sitemap crea además reglas de
+  reescritura para las rutas prerenderizadas y, en modo híbrido, para las rutas dinámicas que
+  necesitan React (administración, firmas compartidas e incorporaciones del autor). Las reglas
+  exactas de las rutas prerenderizadas van antes de las dinámicas para conservar sus metadatos SEO.
 - El paso `prebuild` regenera `frontend/public/sitemap.xml` a partir del archivo musical, incluidas las
   fichas de canciones e himnos; `frontend/public/robots.txt` publica la URL del sitemap.
 - Los metadatos sociales, la URL canónica y los datos estructurados de identidad se definen en
   `frontend/public/index.html`; la aplicación actualiza el título y la URL canónica al navegar.
 - La hoja de Google Fonts se precarga sin bloquear el renderizado y el script externo de Emergent usa `async`.
 - `frontend/public/_headers` configura HSTS, CSP y otras cabeceras de seguridad para Cloudflare Pages.
+- Cloudflare Pages sirve actualmente `200 OK` incluso cuando se solicita un rango de bytes
+  (`Range`) para un archivo estático; no se puede habilitar `206 Partial Content` con `_headers`.
+  La Function `frontend/functions/assets/audio/[[path]].js` entrega rangos `206` desde R2 y
+  deja pasar a los archivos estáticos mientras un MP3 todavía no exista en el bucket. Para
+  activarla:
+  1. Cree un bucket R2 llamado `apl-audio` (o adapte el nombre en los siguientes pasos).
+  2. En **Workers & Pages → su proyecto Pages → Settings → Bindings**, añada un binding R2
+     con nombre `APL_AUDIO_BUCKET` y asígnelo a ese bucket. Repítalo para Production y Preview;
+     después, publique una nueva build.
+  3. Desde `frontend`, ejecute `.\scripts\upload-audio-to-r2.ps1`. Requiere Node, `npx` y
+     Wrangler autenticado con permisos de escritura en ese bucket. Use `-WhatIf` para previsualizar.
+     El script conserva las rutas relativas, por ejemplo `corneta/diana.mp3`.
+  Si el proyecto usa **Direct Upload**, el panel de arrastrar y soltar no compila Pages Functions;
+  publique con Wrangler desde `frontend`: `npx wrangler pages deploy build --project-name <nombre-del-proyecto>`.
+  Los proyectos conectados a Git siguen desplegándose con su build normal.
+  `_routes.json` limita la invocación de Functions a `/assets/audio/*`; el resto del sitio
+  continúa como estático. Los MP3 antiguos siguen de respaldo, así que se pueden subir sin
+  interrupción. Compruebe al terminar con `curl -I -H "Range: bytes=0-3" https://www.apasoligero.com/assets/audio/himnonacional.mp3`:
+  debe responder `206` y `Content-Range`. Solo añadir `Accept-Ranges` a la respuesta no implementa
+  el soporte de rangos.
 - La ruta `/privacidad-cookies` publica la política y el banner bloquea PostHog hasta aceptar; el pie permite
   cambiar la elección. La política debe revisarse con los datos legales y plazos definitivos antes de producción.
 - Los ~88 MB de audio e imágenes en `frontend/public/assets` se publican tal cual (95 archivos; el mayor
