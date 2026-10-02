@@ -28,6 +28,7 @@ export default function Footer() {
               ["/libro-de-visitas", "Libro de Visitas"],
               ["/enlaces", "Enlaces"],
               ["/contacto", "Contacto"],
+              ["/privacidad-cookies", "Privacidad y cookies"],
             ].map(([to, label]) => (
               <li key={to}>
                 <Link to={to} className="text-sage transition-colors hover:text-brass" data-testid={`footer-link-${label.toLowerCase().replace(/ /g, "-")}`}>
@@ -54,9 +55,17 @@ export default function Footer() {
       <div className="border-t border-olive-600/40">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 font-mono text-[10px] uppercase tracking-[0.15em] text-khaki sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <span>A Paso Ligero .com · Por: Álvar Barrios Martínez · ©®™{!IS_STATIC && <> · <Link to="/admin" className="hover:text-brass" data-testid="footer-admin-link">Acceso autor</Link></>}</span>
-          <span className="normal-case tracking-normal text-khaki/80">
-            "Si vas a copiar algo, por favor, cita el origen =&gt; www.apasoligero.com"
-          </span>
+          <div className="flex flex-wrap items-center gap-4 normal-case tracking-normal text-khaki/80">
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event("apl:manage-cookie-consent"))}
+              className="hover:text-brass"
+              data-testid="manage-cookie-consent"
+            >
+              Preferencias de cookies
+            </button>
+            <span>"Si vas a copiar algo, por favor, cita el origen =&gt; www.apasoligero.com"</span>
+          </div>
         </div>
       </div>
     </footer>

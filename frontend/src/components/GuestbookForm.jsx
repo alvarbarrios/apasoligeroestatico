@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
 import { PenLine, Loader2 } from "lucide-react";
@@ -81,6 +82,10 @@ export default function GuestbookForm({ onSigned }) {
         {sending ? <Loader2 size={14} className="animate-spin" /> : <PenLine size={14} />}
         {sending ? "Registrando…" : "Firmar"}
       </button>
+      <p className="mt-3 text-xs leading-relaxed text-sage">
+        El nombre, lugar, unidad y mensaje se publican; el correo no se muestra.{" "}
+        <Link to="/privacidad-cookies" className="text-brass underline">Política de privacidad.</Link>
+      </p>
     </form>
   );
 }

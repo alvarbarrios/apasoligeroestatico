@@ -55,6 +55,14 @@ Si el DNS del dominio ya está en Cloudflare, el registro CNAME se crea solo.
 ## Notas técnicas
 - `frontend/public/_redirects` contiene `/* /index.html 200` para que las rutas de la SPA
   (`/canciones/himnos/tierra/legion`, `/lemas/tierra`, …) funcionen al recargar o compartir enlaces.
+- El paso `prebuild` regenera `frontend/public/sitemap.xml` a partir del archivo musical, incluidas las
+  fichas de canciones e himnos; `frontend/public/robots.txt` publica la URL del sitemap.
+- Los metadatos sociales, la URL canónica y los datos estructurados de identidad se definen en
+  `frontend/public/index.html`; la aplicación actualiza el título y la URL canónica al navegar.
+- La hoja de Google Fonts se precarga sin bloquear el renderizado y el script externo de Emergent usa `async`.
+- `frontend/public/_headers` configura HSTS, CSP y otras cabeceras de seguridad para Cloudflare Pages.
+- La ruta `/privacidad-cookies` publica la política y el banner bloquea PostHog hasta aceptar; el pie permite
+  cambiar la elección. La política debe revisarse con los datos legales y plazos definitivos antes de producción.
 - Los ~88 MB de audio e imágenes en `frontend/public/assets` se publican tal cual (95 archivos; el mayor
   pesa < 25 MB, límite por archivo de Pages).
 - Para una build local: `cd frontend && REACT_APP_STATIC=true yarn build` → carpeta `frontend/build`,
