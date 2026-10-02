@@ -97,7 +97,9 @@ export default function Header() {
           <button
             className="text-parchment xl:hidden"
             onClick={() => setOpen(!open)}
-            aria-label="Abrir menú"
+            aria-label={open ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={open}
+            aria-controls="mobile-navigation"
             data-testid="mobile-menu-toggle"
           >
             {open ? <X size={24} /> : <Menu size={24} />}
@@ -105,7 +107,7 @@ export default function Header() {
         </div>
       </div>
       {open && (
-        <nav className="border-t border-olive-600/60 bg-olive-950 px-4 py-4 xl:hidden" data-testid="mobile-nav">
+        <nav id="mobile-navigation" className="border-t border-olive-600/60 bg-olive-950 px-4 py-4 xl:hidden" data-testid="mobile-nav">
           <div className="grid gap-1">
             {LINKS.map((l, i) => (
               <NavLink
@@ -124,14 +126,6 @@ export default function Header() {
                 {l.label}
               </NavLink>
             ))}
-            <Link
-              to="/libro-de-visitas"
-              onClick={() => setOpen(false)}
-              data-testid="mobile-nav-link-libro"
-              className="flex items-center gap-3 border-l-2 border-transparent px-3 py-2.5 font-mono text-xs uppercase tracking-[0.18em] text-sage"
-            >
-              <span className="text-khaki">09</span> Libro de Visitas
-            </Link>
           </div>
         </nav>
       )}
