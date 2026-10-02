@@ -96,7 +96,7 @@ export default function Libro() {
                 href={data.meta.guestbookUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                data-testid="guestbook-external-link"
+                data-testid="guestbook-external-link-legacy"
                 className="mt-2 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-brass hover:underline"
               >
                 Consultar las firmas antiguas <ExternalLink size={12} />

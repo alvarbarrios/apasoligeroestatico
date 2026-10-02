@@ -15,7 +15,7 @@ Redesign the user's existing Dreamweaver website as a complete modern website wh
 - Frontend-only React SPA (react-router-dom v7, framer-motion, lenis smooth scroll, Tailwind)
 - Content pipeline: /tmp/extract_content.py parses all 176 legacy .htm files (BeautifulSoup, cp1252) into /app/frontend/src/data/archive.json (145 song records, 9 himnos groups, 8 lemas groups, 34 bugle calls, 36 audio archive entries, static pages)
 - Media: /app/frontend/public/assets/audio (69 mp3; 5 WMA + 1 WAV converted via ffmpeg), /assets/img (16 original images/emblems)
-- Backend: FastAPI + MongoDB — /app/backend/routes/contact.py (POST /api/contact → Emergent managed Resend email to CONTACT_TO_EMAIL, honeypot + 5/h/IP rate limit), /app/backend/routes/guestbook.py (GET/POST /api/guestbook, MongoDB `guestbook` collection, uuid ids, email never published, honeypot + 3/h/IP), /app/backend/services/email.py (playbook guardrail gate). Env: EMERGENT_EMAIL_KEY, EMAIL_FROM_NAME="A Paso Ligero .com", CONTACT_TO_EMAIL=dark_slmnk@hotmail.com (owner's public email from source site — change in .env if needed)
+- Backend: FastAPI + MongoDB — /app/backend/routes/contact.py (POST /api/contact → Emergent managed Resend email to CONTACT_TO_EMAIL, honeypot + 5/h/IP rate limit), /app/backend/routes/guestbook.py (GET/POST /api/guestbook, MongoDB `guestbook` collection, uuid ids, email never published, honeypot + 3/h/IP), /app/backend/services/email.py (playbook guardrail gate). Env: EMERGENT_EMAIL_KEY, EMAIL_FROM_NAME="A Paso Ligero .com", CONTACT_TO_EMAIL=<configured-owner-email>
 - Tests: /app/backend/tests/test_api.py (pytest, 4 passing), /app/backend/tests/test_features.py (testing agent)
 - Design system: /app/design_guidelines.json (obsidian #070907, olive drab, brass #D4A359, Barlow Condensed/DM Sans/JetBrains Mono/Playfair Display)
 
@@ -36,7 +36,7 @@ Redesign the user's existing Dreamweaver website as a complete modern website wh
 - Verified by testing agent (iteration_1.json): 100% backend + frontend, incl. 1 real email send + real guestbook signature, 375px responsive
 
 ## Implemented (2026-09-30, session 3)
-- Owner auth (single admin seeded from ADMIN_EMAIL/ADMIN_PASSWORD, bcrypt + JWT Bearer 12h, 5-fail/15-min lockout in Mongo login_attempts): /app/backend/routes/auth.py; creds in /app/memory/test_credentials.md
+- Owner auth (single admin seeded from ADMIN_EMAIL/ADMIN_PASSWORD, bcrypt + JWT Bearer 12h, 5-fail/15-min lockout in Mongo login_attempts): /app/backend/routes/auth.py; credentials are supplied only through environment variables
 - Moderation panel /admin (footer link "Acceso autor"): login form → list all/visible/hidden signatures with email, hide/show toggle, delete with confirm. Public guestbook excludes hidden. Routes /app/backend/routes/admin.py
 - Global search: header button + Ctrl/⌘K → SearchDialog (accent-insensitive, grouped Canciones/Audios/Lemas/Secciones, lyric + motto body search, keyboard nav, audio results play instantly). Index in /app/frontend/src/data/searchIndex.js
 - Printable songbook sheet: song dossier "Hoja imprimible" → /imprimir/{paso-ligero|otras}/:slug or /imprimir/himnos/:group/:slug, rendered without site chrome (white A4 sheet, 1/2 columns, font size 80–140%, print CSS, emblem, footer attribution)

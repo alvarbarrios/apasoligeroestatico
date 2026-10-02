@@ -20,8 +20,12 @@ Configuración de build:
 |---|---|
 | Framework preset | *Create React App* (o *None*) |
 | Root directory | `frontend` |
-| Build command | `yarn build` |
+| Build command | `yarn install --frozen-lockfile && yarn build` |
 | Build output directory | `build` |
+
+El proyecto fija Yarn Classic en `frontend/package.json` y conserva `frontend/yarn.lock`.
+La instalación con `--frozen-lockfile` hace que Pages falle si el manifiesto y el lockfile
+no coinciden, en lugar de resolver versiones distintas durante el despliegue.
 
 Variables de entorno (Settings → Environment variables, **Production** y **Preview**):
 
@@ -32,6 +36,15 @@ Variables de entorno (Settings → Environment variables, **Production** y **Pre
 | `CI` | `false` |
 | `REACT_APP_STATIC` | `true` (modo estático) — **o bien** |
 | `REACT_APP_BACKEND_URL` | `https://<su-app>.emergent.host` (modo híbrido, sin barra final) |
+
+La build genera `sitemap.xml` desde el archivo estático de canciones y grupos, publica
+`robots.txt` y crea HTML prerenderizado con título y metadatos Open Graph/canonical para cada
+ruta estática. Esto permite que buscadores y previsualizadores sociales que no ejecutan
+JavaScript reciban metadatos específicos. Las canciones dinámicas añadidas desde el panel
+solo aparecen tras generar una nueva build cuando formen parte del archivo estático.
+Canonical, Open Graph y sitemap usan `https://www.apasoligero.com`; si se elige otro dominio,
+actualice esa URL en `frontend/public/index.html`, `frontend/src/hooks/useTitle.js`,
+`frontend/scripts/generate-sitemap.js` y `frontend/public/robots.txt`.
 
 Pulse **Save and Deploy**. En 2–4 minutos tendrá la URL `https://<proyecto>.pages.dev`.
 

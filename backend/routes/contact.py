@@ -10,9 +10,18 @@ from services.email import send_email, EMAIL_FROM_NAME
 
 router = APIRouter(prefix="/contact", tags=["contact"])
 
-CONTACT_TO_EMAIL = os.environ["CONTACT_TO_EMAIL"]
+CONTACT_TO_EMAIL = (os.environ.get("CONTACT_TO_EMAIL") or "").strip()
+if not CONTACT_TO_EMAIL:
+    raise RuntimeError("CONTACT_TO_EMAIL debe configurarse en el entorno antes de enviar mensajes de contacto.")
+
 _RATE: dict[str, list[float]] = {}
 _LIMIT, _WINDOW = 5, 3600  # 5 messages / hour / ip
+_MAX_RATE_KEYS = 2048
+
+
+def get_client_ip(request: Request) -> str:
+    # Uvicorn resolves forwarded headers only from configured trusted proxies.
+    return request.client.host if request.client and request.client.host else "unknown"
 
 
 class ContactIn(BaseModel):
@@ -28,13 +37,21 @@ class ContactIn(BaseModel):
 
 def _rate_limited(ip: str) -> bool:
     now = time.time()
-    hits = [t for t in _RATE.get(ip, []) if now - t < _WINDOW]
-    for k in [k for k, v in _RATE.items() if k != ip and all(now - t >= _WINDOW for t in v)]:
-        _RATE.pop(k, None)
-    _RATE[ip] = hits
+    for key in list(_RATE):
+        hits = [timestamp for timestamp in _RATE[key] if now - timestamp < _WINDOW]
+        if hits:
+            _RATE[key] = hits
+        else:
+            _RATE.pop(key, None)
+    key = ip
+    if key not in _RATE and len(_RATE) >= _MAX_RATE_KEYS - 1:
+        key = "__overflow__"
+    hits = _RATE.get(key, [])
+    _RATE[key] = hits
     if len(hits) >= _LIMIT:
         return True
     hits.append(now)
+    _RATE[key] = hits
     return False
 
 
@@ -69,7 +86,7 @@ def _template(c: ContactIn) -> str:
 async def submit_contact(payload: ContactIn, request: Request):
     if payload.website:  # bot filled the honeypot
         return {"status": "ok"}
-    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "?").split(",")[0].strip()
+    ip = get_client_ip(request)
     if _rate_limited(ip):
         raise HTTPException(status_code=429, detail="Demasiadas transmisiones. Inténtelo más tarde.")
     subject = f"[A Paso Ligero] {payload.tema}: {payload.asunto}"

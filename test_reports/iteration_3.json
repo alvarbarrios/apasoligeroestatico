@@ -29,7 +29,7 @@
     "/app/backend/tests/test_songs.py (new)"
   ],
   "success_rate": {"backend": "100% (6/6 new + 9/9 regression)", "frontend": "95% (10/11 scripted assertions passed; seek-forward observation flagged)"},
-  "test_credentials": "autor@apasoligero.com / PasoLigero-2026! (per /app/memory/test_credentials.md)",
+  "test_credentials": "Configured via ADMIN_EMAIL / ADMIN_PASSWORD environment variables.",
   "seed_data_creation": "One song was created, edited, and deleted via the admin UI during the Playwright run (data-testid=songs-admin-item-{id}). Backend pytest created and deleted 2 additional songs via the API. GET /api/songs confirmed empty after cleanup.",
   "retest_needed": false,
   "main_agent_can_self_test": true,

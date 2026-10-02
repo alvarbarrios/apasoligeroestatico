@@ -44,10 +44,19 @@ export function PlayerProvider({ children }) {
     ensureAnalyser();
     if (ctxRef.current?.state === "suspended") ctxRef.current.resume();
     a.src = t.file;
-    a.play().catch(() => {});
     setTrack(t);
-    setPlaying(true);
+    setPlaying(false);
     setTime(0);
+    setDur(0);
+    const onPlayResult = async () => {
+      try {
+        await a.play();
+        setPlaying(true);
+      } catch {
+        setPlaying(false);
+      }
+    };
+    onPlayResult();
   }, []);
 
   const next = useCallback(() => {
@@ -68,14 +77,23 @@ export function PlayerProvider({ children }) {
     audioRef.current = a;
     const onTime = () => setTime(a.currentTime);
     const onDur = () => setDur(a.duration || 0);
+    const onPlaying = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    const onError = () => setPlaying(false);
     const onEnd = () => next();
     a.addEventListener("timeupdate", onTime);
     a.addEventListener("loadedmetadata", onDur);
+    a.addEventListener("playing", onPlaying);
+    a.addEventListener("pause", onPause);
+    a.addEventListener("error", onError);
     a.addEventListener("ended", onEnd);
     return () => {
       a.pause();
       a.removeEventListener("timeupdate", onTime);
       a.removeEventListener("loadedmetadata", onDur);
+      a.removeEventListener("playing", onPlaying);
+      a.removeEventListener("pause", onPause);
+      a.removeEventListener("error", onError);
       a.removeEventListener("ended", onEnd);
       ctxRef.current?.close();
     };
@@ -87,11 +105,10 @@ export function PlayerProvider({ children }) {
     if (playing) {
       a.pause();
       setPlaying(false);
-    } else {
-      if (ctxRef.current?.state === "suspended") ctxRef.current.resume();
-      a.play().catch(() => {});
-      setPlaying(true);
+      return;
     }
+    if (ctxRef.current?.state === "suspended") ctxRef.current.resume();
+    a.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
   };
 
   const play = (t) => {

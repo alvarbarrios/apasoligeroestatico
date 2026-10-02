@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /imprimir/
+
+Sitemap: https://www.apasoligero.com/sitemap.xml
