@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { IS_STATIC } from "@/lib/static";
 
 export default function Footer() {
   return (
@@ -52,7 +53,7 @@ export default function Footer() {
       </div>
       <div className="border-t border-olive-600/40">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 font-mono text-[10px] uppercase tracking-[0.15em] text-khaki sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <span>A Paso Ligero .com · Por: Álvar Barrios Martínez · ©®™ · <Link to="/admin" className="hover:text-brass" data-testid="footer-admin-link">Acceso autor</Link></span>
+          <span>A Paso Ligero .com · Por: Álvar Barrios Martínez · ©®™{!IS_STATIC && <> · <Link to="/admin" className="hover:text-brass" data-testid="footer-admin-link">Acceso autor</Link></>}</span>
           <span className="normal-case tracking-normal text-khaki/80">
             "Si vas a copiar algo, por favor, cita el origen =&gt; www.apasoligero.com"
           </span>

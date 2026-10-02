@@ -6,6 +6,7 @@ import PageHeader from "@/components/PageHeader";
 import Reveal from "@/components/Reveal";
 import useTitle from "@/hooks/useTitle";
 import data from "@/data/archive";
+import { IS_STATIC } from "@/lib/static";
 
 const TEMAS = ["Pedir Canción", "Enviar Canción", "Sugerencia", "Otros"];
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -21,6 +22,13 @@ export default function Contacto() {
     e.preventDefault();
     if (form.asunto.trim().length < 2) return toast.error("Indique un asunto (mínimo 2 caracteres).");
     if (form.nota.trim().length < 5) return toast.error("Escriba su nota (mínimo 5 caracteres).");
+    if (IS_STATIC) {
+      const subject = `[A Paso Ligero] ${form.tema}: ${form.asunto}`;
+      const body = [`Tema: ${form.tema}`, `Asunto: ${form.asunto}`, "", form.nota, "", "—", `Nombre: ${form.nombre}`, `E-mail: ${form.email}`, `Tel: ${form.tel}`, `UCO: ${form.uco}`].join("\n");
+      window.location.href = `mailto:${data.meta.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      toast.success("Se abrirá su cliente de correo con el mensaje preparado.");
+      return;
+    }
     setStatus("sending");
     try {
       await axios.post(`${API}/api/contact`, { ...form, email: form.email.trim() || null });
@@ -183,7 +191,7 @@ export default function Contacto() {
               {status === "sending" ? "Transmitiendo…" : "Enviar transmisión"}
             </button>
             <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.2em] text-khaki">
-              El mensaje se entrega directamente al buzón del autor.
+              {IS_STATIC ? "Se abrirá su programa de correo con el mensaje preparado." : "El mensaje se entrega directamente al buzón del autor."}
             </p>
             </>
             )}

@@ -70,3 +70,8 @@ Redesign the user's existing Dreamweaver website as a complete modern website wh
 - P2: Print whole section/group as a multi-page songbook (cancionero completo)
 - P2: Admin: moderate contact submissions log / view sent messages
 - P3: Restrict CORS to site domain on deployment; remove legacy /api/status template routes; Pydantic response model for admin list
+
+## Implemented (2026-10-01, session 7) — Cloudflare Pages / static export
+- Build-time switch `REACT_APP_STATIC=true` (or missing REACT_APP_BACKEND_URL) → /app/frontend/src/lib/static.js IS_STATIC. Static mode: Contacto uses mailto, Libro shows legacy external guestbook link only, /admin route + footer link removed, ArchiveContext/Auth skip API calls. Preview/Emergent deploy unaffected (full mode).
+- /app/frontend/public/_redirects (`/* /index.html 200`) for SPA routing on Pages/Netlify. Guide: /app/DEPLOY_CLOUDFLARE.md (root dir frontend, `yarn build`, output `build`, NODE_VERSION=20, CI=false; static vs hybrid modes). Verified static build (89 MB, no API calls) compiles and renders.
+- Guestbook test signatures purged from preview DB; pytest now deletes its own entries. "Himnos" removed from top nav (user edit).

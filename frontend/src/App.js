@@ -27,6 +27,7 @@ import PrintSheet from "@/pages/PrintSheet";
 import NotFound from "@/pages/NotFound";
 import { AuthProvider } from "@/context/AuthContext";
 import { ArchiveProvider, useArchive } from "@/context/ArchiveContext";
+import { IS_STATIC } from "@/lib/static";
 
 function ScrollManager() {
   const { pathname } = useLocation();
@@ -93,7 +94,7 @@ function Shell() {
           <Route path="/libro-de-visitas/firma/:id" element={<Firma />} />
           <Route path="/enlaces" element={<Enlaces />} />
           <Route path="/contacto" element={<Contacto />} />
-          <Route path="/admin" element={<Admin />} />
+          {!IS_STATIC && <Route path="/admin" element={<Admin />} />}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

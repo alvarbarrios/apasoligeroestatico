@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import axios from "axios";
 import { mergeDynamicSongs } from "@/data/archive";
 import { resetIndex } from "@/data/searchIndex";
+import { IS_STATIC } from "@/lib/static";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const ArchiveCtx = createContext({ version: 0, ready: false, refresh: () => {} });
@@ -12,6 +13,10 @@ export function ArchiveProvider({ children }) {
   const [ready, setReady] = useState(false);
 
   const refresh = useCallback(async () => {
+    if (IS_STATIC) {
+      setReady(true);
+      return;
+    }
     try {
       const { data } = await axios.get(`${API}/api/songs`);
       if (mergeDynamicSongs(data, API)) {

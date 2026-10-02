@@ -8,6 +8,7 @@ import GuestbookForm from "@/components/GuestbookForm";
 import GuestbookEntry from "@/components/GuestbookEntry";
 import useTitle from "@/hooks/useTitle";
 import data from "@/data/archive";
+import { IS_STATIC } from "@/lib/static";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const SIZE = 10;
@@ -31,10 +32,47 @@ export default function Libro() {
   }, []);
 
   useEffect(() => {
-    load(page);
+    if (!IS_STATIC) load(page);
   }, [page, load]);
 
   const pages = Math.max(1, Math.ceil(res.total / SIZE));
+
+  if (IS_STATIC) {
+    return (
+      <div data-testid="libro-page">
+        <PageHeader
+          eyebrow="GuestBook de A Paso Ligero .com"
+          title="Libro de Visitas"
+          intro={[
+            "He dado pie a este pequeño apartado para que puedan dejar su huella en este lugar, especialmente si han disfrutado con su contenido.",
+            "Para mí sirve de gran aliciente el saber que hay gente para la que es útil todo el esfuerzo que dedico a mantener esta web; y otros con tanta afición en los temas castrenses como yo.",
+            "El libro se encuentra en una página externa. ¡Dejen su firma!",
+          ]}
+          crumbs={[{ to: "/", label: "Inicio" }, { label: "Libro de Visitas" }]}
+        />
+        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+          <Reveal>
+            <a
+              href={data.meta.guestbookUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="guestbook-external-link"
+              className="group relative flex items-center justify-between gap-6 border border-brass/60 bg-olive-950 p-8 transition-colors hover:bg-brass/5"
+            >
+              <span className="absolute left-0 top-0 h-5 w-5 border-l-2 border-t-2 border-brass" />
+              <span className="absolute bottom-0 right-0 h-5 w-5 border-b-2 border-r-2 border-brass" />
+              <span>
+                <span className="block font-mono text-[10px] uppercase tracking-[0.3em] text-brass">Abrir el libro</span>
+                <span className="mt-2 block font-display text-3xl font-extrabold uppercase tracking-tight text-parchment group-hover:text-brass">Firmar y leer las firmas</span>
+                <span className="mt-2 block text-sm text-sage">Se abre en una nueva pestaña.</span>
+              </span>
+              <ExternalLink size={28} className="shrink-0 text-brass transition-transform group-hover:translate-x-1" />
+            </a>
+          </Reveal>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div data-testid="libro-page">
