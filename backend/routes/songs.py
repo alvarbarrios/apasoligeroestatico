@@ -4,6 +4,7 @@ import re
 import shutil
 import unicodedata
 import uuid
+from collections import OrderedDict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal, Optional
@@ -19,8 +20,11 @@ upload = APIRouter(prefix="/admin/upload", tags=["admin"], dependencies=[Depends
 
 TMP = Path("/tmp/apl_uploads")
 MAX_AUDIO = 25 * 1024 * 1024
+MAX_AUDIO_CACHE_BYTES = 50 * 1024 * 1024
+MAX_AUDIO_CACHE_ENTRIES = 16
 HIMNOS_GROUPS = {"aire", "armada", "cucos", "espana", "gcivil", "greal", "tierra", "ume", "varios"}
-_audio_cache: dict[str, tuple[bytes, str]] = {}
+_audio_cache: OrderedDict[str, tuple[bytes, str]] = OrderedDict()
+_audio_cache_bytes = 0
 
 
 MESES = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"]
@@ -59,6 +63,23 @@ def _public(doc: dict) -> dict:
     }
 
 
+def _cache_audio(path: str, data: bytes, content_type: str) -> None:
+    global _audio_cache_bytes
+    if len(data) > MAX_AUDIO_CACHE_BYTES:
+        return
+    cached = _audio_cache.pop(path, None)
+    if cached:
+        _audio_cache_bytes -= len(cached[0])
+    while _audio_cache and (
+        len(_audio_cache) >= MAX_AUDIO_CACHE_ENTRIES
+        or _audio_cache_bytes + len(data) > MAX_AUDIO_CACHE_BYTES
+    ):
+        _, (evicted, _) = _audio_cache.popitem(last=False)
+        _audio_cache_bytes -= len(evicted)
+    _audio_cache[path] = (data, content_type)
+    _audio_cache_bytes += len(data)
+
+
 def make_routers(db):
     async def _file(file_id: str):
         return await db.files.find_one({"id": file_id, "is_deleted": False}, {"_id": 0})
@@ -76,23 +97,40 @@ def make_routers(db):
         rec = await _file(song["file_id"])
         if not rec:
             raise HTTPException(status_code=404, detail="Audio no encontrado")
-        if rec["storage_path"] not in _audio_cache:
+        path = rec["storage_path"]
+        if path not in _audio_cache:
             data, ct = await get_object(rec["storage_path"])
-            if len(_audio_cache) > 40:
-                _audio_cache.clear()
-            _audio_cache[rec["storage_path"]] = (data, rec.get("content_type") or ct)
-        data, ct = _audio_cache[rec["storage_path"]]
+            if len(data) > MAX_AUDIO:
+                raise HTTPException(status_code=413, detail="El audio supera los 25 MB")
+            ct = rec.get("content_type") or ct
+            _cache_audio(path, data, ct)
+        else:
+            data, ct = _audio_cache.pop(path)
+            _audio_cache[path] = (data, ct)
+        data, ct = _audio_cache[path]
         size = len(data)
         headers = {"Cache-Control": "public, max-age=86400", "Accept-Ranges": "bytes"}
         rng = request.headers.get("range")
+        if rng and rng.startswith("bytes=") and len(rng) > 64:
+            raise HTTPException(status_code=416, detail="Rango no satisfactorio", headers={"Content-Range": f"bytes */{size}"})
         m = re.fullmatch(r"bytes=(\d*)-(\d*)", rng or "")
         if m and (m.group(1) or m.group(2)):
-            start = int(m.group(1)) if m.group(1) else max(0, size - int(m.group(2)))
+            if not size:
+                raise HTTPException(status_code=416, detail="Rango no satisfactorio", headers={"Content-Range": "bytes */0"})
+            if m.group(1):
+                start = int(m.group(1))
+            else:
+                suffix_size = int(m.group(2))
+                if suffix_size == 0:
+                    raise HTTPException(status_code=416, detail="Rango no satisfactorio", headers={"Content-Range": f"bytes */{size}"})
+                start = max(0, size - suffix_size)
             end = min(int(m.group(2)), size - 1) if m.group(1) and m.group(2) else size - 1
-            if start >= size:
+            if start >= size or start > end:
                 raise HTTPException(status_code=416, detail="Rango no satisfactorio", headers={"Content-Range": f"bytes */{size}"})
             headers["Content-Range"] = f"bytes {start}-{end}/{size}"
             return Response(content=data[start:end + 1], status_code=206, media_type=ct, headers=headers)
+        if rng and "," in rng:
+            raise HTTPException(status_code=416, detail="Solo se admite un rango de bytes", headers={"Content-Range": f"bytes */{size}"})
         return Response(content=data, media_type=ct, headers=headers)
 
     # ---- chunked upload -------------------------------------------------
@@ -100,9 +138,14 @@ def make_routers(db):
     async def upload_chunk(upload_id: str = Form(...), index: int = Form(...), chunk: UploadFile = File(...)):
         if not re.fullmatch(r"[a-f0-9-]{8,64}", upload_id):
             raise HTTPException(status_code=400, detail="upload_id inválido")
+        if index < 0:
+            raise HTTPException(status_code=400, detail="Índice de fragmento inválido")
         d = TMP / upload_id
         d.mkdir(parents=True, exist_ok=True)
-        data = await chunk.read()
+        data = await chunk.read(MAX_AUDIO + 1)
+        if len(data) > MAX_AUDIO:
+            shutil.rmtree(d, ignore_errors=True)
+            raise HTTPException(status_code=413, detail="El audio supera los 25 MB")
         (d / f"{index:05d}.part").write_bytes(data)
         size = sum(p.stat().st_size for p in d.glob("*.part"))
         if size > MAX_AUDIO:

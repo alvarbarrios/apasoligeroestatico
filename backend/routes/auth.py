@@ -15,6 +15,14 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 _db = None
 
 
+def require_admin_credentials() -> tuple[str, str]:
+    email = (os.environ.get("ADMIN_EMAIL") or "").strip()
+    password = (os.environ.get("ADMIN_PASSWORD") or "").strip()
+    if not email or not password:
+        raise RuntimeError("ADMIN_EMAIL y ADMIN_PASSWORD deben configurarse en el entorno antes de usar autenticación de admin.")
+    return email.lower(), password
+
+
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
@@ -24,7 +32,10 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 
 def _secret() -> str:
-    return os.environ["JWT_SECRET"]
+    secret = os.environ.get("JWT_SECRET")
+    if not secret:
+        raise RuntimeError("JWT_SECRET debe configurarse en el entorno antes de emitir tokens.")
+    return secret
 
 
 def create_access_token(user_id: str, email: str) -> str:
@@ -36,8 +47,7 @@ def create_access_token(user_id: str, email: str) -> str:
 async def seed_admin(db):
     global _db
     _db = db
-    email = os.environ["ADMIN_EMAIL"].lower()
-    password = os.environ["ADMIN_PASSWORD"]
+    email, password = require_admin_credentials()
     await db.users.create_index("email", unique=True)
     await db.login_attempts.create_index("identifier")
     existing = await db.users.find_one({"email": email})
@@ -76,7 +86,8 @@ class LoginIn(BaseModel):
 
 
 def _ip(request: Request) -> str:
-    return request.headers.get("x-forwarded-for", request.client.host if request.client else "?").split(",")[0].strip()
+    # Uvicorn resolves forwarded headers only from configured trusted proxies.
+    return request.client.host if request.client and request.client.host else "unknown"
 
 
 @router.post("/login")

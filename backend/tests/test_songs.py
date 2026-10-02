@@ -4,9 +4,22 @@ import uuid
 import pytest
 import httpx
 
-BASE = os.environ.get("TEST_API_URL", "https://command-center-916.preview.emergentagent.com").rstrip("/")
-ADMIN = {"email": "autor@apasoligero.com", "password": "PasoLigero-2026!"}
-MP3 = "/tmp/emp/quienes.mp3"
+BASE = os.environ.get("TEST_API_URL")
+if not BASE:
+    pytest.fail("TEST_API_URL debe configurarse explícitamente para ejecutar pruebas de integración.")
+BASE = BASE.rstrip("/")
+
+
+def require_admin_credentials():
+    email = os.environ.get("ADMIN_EMAIL")
+    password = os.environ.get("ADMIN_PASSWORD")
+    if not email or not password:
+        pytest.fail("ADMIN_EMAIL y ADMIN_PASSWORD deben configurarse para ejecutar las pruebas de canciones.")
+    return {"email": email, "password": password}
+
+
+ADMIN = require_admin_credentials()
+MP3 = os.environ.get("TEST_AUDIO_FILE")
 CHUNK = 500 * 1024  # 500 KB
 
 
@@ -76,6 +89,8 @@ def test_complete_mismatched_total(client, auth):
 @pytest.fixture(scope="module")
 def uploaded(client, auth):
     """Upload the real quienes.mp3 in chunks."""
+    if not MP3 or not os.path.isfile(MP3):
+        pytest.fail("TEST_AUDIO_FILE debe apuntar a un MP3 local para ejecutar la prueba de carga.")
     uid = str(uuid.uuid4())
     data = open(MP3, "rb").read()
     chunks = [data[i:i + CHUNK] for i in range(0, len(data), CHUNK)]
@@ -113,6 +128,19 @@ def test_full_song_lifecycle(client, auth, uploaded):
     assert ar.status_code == 200
     assert ar.headers.get("content-type", "").startswith("audio/")
     assert len(ar.content) == uploaded["size"]
+    partial = client.get(f"/api/songs/{sid}/audio", headers={"Range": "bytes=0-9"})
+    assert partial.status_code == 206
+    assert partial.content == ar.content[:10]
+    assert partial.headers.get("content-range") == f"bytes 0-9/{uploaded['size']}"
+    suffix = client.get(f"/api/songs/{sid}/audio", headers={"Range": "bytes=-10"})
+    assert suffix.status_code == 206 and suffix.content == ar.content[-10:]
+    oversized_suffix = client.get(f"/api/songs/{sid}/audio", headers={"Range": f"bytes=-{uploaded['size'] + 1}"})
+    assert oversized_suffix.status_code == 206 and oversized_suffix.content == ar.content
+    assert client.get(f"/api/songs/{sid}/audio", headers={"Range": "bytes=-0"}).status_code == 416
+    assert client.get(f"/api/songs/{sid}/audio", headers={"Range": f"bytes={uploaded['size']}-"}).status_code == 416
+    assert client.get(f"/api/songs/{sid}/audio", headers={"Range": "bytes=10-0"}).status_code == 416
+    assert client.get(f"/api/songs/{sid}/audio", headers={"Range": "bytes=0-1,3-4"}).status_code == 416
+    assert client.get(f"/api/songs/{sid}/audio", headers={"Range": f"bytes={'9' * 10000}-"}).status_code == 416
 
     # Slug collision — create another same title
     r2 = client.post("/api/admin/songs", json=payload, headers=auth)

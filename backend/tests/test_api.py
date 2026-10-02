@@ -5,7 +5,17 @@ import pytest
 import httpx
 
 BASE = os.environ.get("TEST_API_URL", "http://localhost:8001").rstrip("/")
-ADMIN = {"email": os.environ.get("ADMIN_EMAIL", "autor@apasoligero.com"), "password": os.environ.get("ADMIN_PASSWORD", "PasoLigero-2026!")}
+
+
+def require_admin_credentials():
+    email = os.environ.get("ADMIN_EMAIL")
+    password = os.environ.get("ADMIN_PASSWORD")
+    if not email or not password:
+        pytest.fail("ADMIN_EMAIL y ADMIN_PASSWORD deben configurarse para ejecutar las pruebas de autenticación.")
+    return {"email": email, "password": password}
+
+
+ADMIN = require_admin_credentials()
 
 
 @pytest.fixture(scope="module")

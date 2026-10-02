@@ -46,9 +46,10 @@ export function mergeDynamicSongs(list, apiBase) {
   for (const s of list) {
     const key = s.section === "himnos" ? `himnos/${s.group}/${s.slug}` : `${s.section}/${s.slug}`;
     incoming.add(key);
-    if (data.songs[key]) continue;
+    const existing = data.songs[key];
+    if (existing && !existing.dynamic) continue;
     const file = s.audio ? `${apiBase}${s.audio}` : null;
-    data.songs[key] = {
+    const songRecord = {
       title: s.title,
       stanzas: s.stanzas,
       audios: file ? [{ file, label: s.audio_name || "audio.mp3" }] : [],
@@ -58,26 +59,42 @@ export function mergeDynamicSongs(list, apiBase) {
       dynamic: true,
       id: s.id,
     };
-    const list_ = s.section === "himnos" ? data.himnosGroups.find((g) => g.slug === s.group)?.items : data[s.section].items;
-    if (list_) {
-      list_.push({ slug: s.slug, title: s.title });
-      list_.sort(byTitle);
+    if (!existing) {
+      data.songs[key] = songRecord;
+      const list_ = s.section === "himnos" ? data.himnosGroups.find((g) => g.slug === s.group)?.items : data[s.section].items;
+      if (list_) {
+        list_.push({ slug: s.slug, title: s.title });
+        list_.sort(byTitle);
+      }
+      if (file) {
+        data.audios.items.push({ file, title: s.title });
+        data.audios.items.sort(byTitle);
+      }
+      DYNAMIC_KEYS.add(key);
+      changed = true;
+    } else {
+      Object.assign(existing, songRecord, { dynamic: true });
+      changed = true;
     }
-    if (file) {
-      data.audios.items.push({ file, title: s.title });
-      data.audios.items.sort(byTitle);
-    }
-    DYNAMIC_KEYS.add(key);
-    changed = true;
   }
   for (const key of [...DYNAMIC_KEYS]) {
     if (incoming.has(key)) continue;
     const song = data.songs[key];
+    if (!song || !song.dynamic) {
+      DYNAMIC_KEYS.delete(key);
+      continue;
+    }
     const [section, group, slug] = key.split("/");
     const list_ = section === "himnos" ? data.himnosGroups.find((g) => g.slug === group)?.items : data[section].items;
     const s = section === "himnos" ? slug : group;
-    if (list_) list_.splice(list_.findIndex((i) => i.slug === s), 1);
-    if (song.audios[0]) data.audios.items.splice(data.audios.items.findIndex((a) => a.file === song.audios[0].file), 1);
+    if (list_) {
+      const idx = list_.findIndex((i) => i.slug === s);
+      if (idx >= 0) list_.splice(idx, 1);
+    }
+    if (song.audios[0]) {
+      const audioIdx = data.audios.items.findIndex((a) => a.file === song.audios[0].file);
+      if (audioIdx >= 0) data.audios.items.splice(audioIdx, 1);
+    }
     delete data.songs[key];
     DYNAMIC_KEYS.delete(key);
     changed = true;
