@@ -4,7 +4,18 @@ import uuid
 import pytest
 import httpx
 
-BASE = os.environ.get("TEST_API_URL", "https://command-center-916.preview.emergentagent.com").rstrip("/")
+BASE = os.environ.get("TEST_API_URL")
+if not BASE:
+    pytest.fail("TEST_API_URL debe configurarse explícitamente para ejecutar pruebas de integración.")
+BASE = BASE.rstrip("/")
+
+
+def require_admin_credentials():
+    email = os.environ.get("ADMIN_EMAIL")
+    password = os.environ.get("ADMIN_PASSWORD")
+    if not email or not password:
+        pytest.fail("ADMIN_EMAIL y ADMIN_PASSWORD deben configurarse para ejecutar las pruebas de comportamiento.")
+    return {"email": email, "password": password}
 
 
 @pytest.fixture(scope="module")
@@ -42,8 +53,8 @@ def test_guestbook_create_then_list_newest_first(client):
     lst = client.get("/api/guestbook", params={"page": 1, "size": 5}).json()
     assert lst["items"][0]["id"] == body["id"], "newest first ordering broken"
     # clean up so test signatures never pollute the real guestbook
-    tok = client.post("/api/auth/login", json={"email": os.environ.get("ADMIN_EMAIL", "autor@apasoligero.com"),
-                                               "password": os.environ.get("ADMIN_PASSWORD", "PasoLigero-2026!")}).json()["access_token"]
+    admin = require_admin_credentials()
+    tok = client.post("/api/auth/login", json=admin).json()["access_token"]
     assert client.delete(f"/api/admin/guestbook/{body['id']}", headers={"Authorization": f"Bearer {tok}"}).status_code == 200
 
 

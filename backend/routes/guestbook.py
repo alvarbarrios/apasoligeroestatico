@@ -10,6 +10,12 @@ router = APIRouter(prefix="/guestbook", tags=["guestbook"])
 
 _RATE: dict[str, list[float]] = {}
 _LIMIT, _WINDOW = 3, 3600  # 3 firmas / hora / ip
+_MAX_RATE_KEYS = 2048
+
+
+def get_client_ip(request: Request) -> str:
+    # Uvicorn resolves forwarded headers only from configured trusted proxies.
+    return request.client.host if request.client and request.client.host else "unknown"
 
 
 class EntryIn(BaseModel):
@@ -32,13 +38,21 @@ class Entry(BaseModel):
 
 def _rate_limited(ip: str) -> bool:
     now = time.time()
-    hits = [t for t in _RATE.get(ip, []) if now - t < _WINDOW]
-    for k in [k for k, v in _RATE.items() if k != ip and all(now - t >= _WINDOW for t in v)]:
-        _RATE.pop(k, None)
-    _RATE[ip] = hits
+    for key in list(_RATE):
+        hits = [timestamp for timestamp in _RATE[key] if now - timestamp < _WINDOW]
+        if hits:
+            _RATE[key] = hits
+        else:
+            _RATE.pop(key, None)
+    key = ip
+    if key not in _RATE and len(_RATE) >= _MAX_RATE_KEYS - 1:
+        key = "__overflow__"
+    hits = _RATE.get(key, [])
+    _RATE[key] = hits
     if len(hits) >= _LIMIT:
         return True
     hits.append(now)
+    _RATE[key] = hits
     return False
 
 
@@ -68,7 +82,7 @@ def make_router(db):
     async def create_entry(payload: EntryIn, request: Request):
         if payload.website:
             raise HTTPException(status_code=400, detail="Firma rechazada")
-        ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "?").split(",")[0].strip()
+        ip = get_client_ip(request)
         if _rate_limited(ip):
             raise HTTPException(status_code=429, detail="Demasiadas firmas. Inténtelo más tarde.")
         doc = {

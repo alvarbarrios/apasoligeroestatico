@@ -91,21 +91,28 @@ export default function SyncedLyrics({ song }) {
                 const idx = timeline.findIndex((l) => l.si === si && l.li === li);
                 const isCurrent = live && idx === current;
                 const isPast = live && idx >= 0 && idx < current;
-                return (
-                  <p
+                const buttonClass = `block w-full text-left font-serif-ed text-lg italic leading-relaxed transition-all duration-500 sm:text-xl ${file ? "cursor-pointer" : ""} ${
+                  isCurrent
+                    ? "translate-x-1 text-brass"
+                    : isPast
+                      ? "text-parchment/45"
+                      : live
+                        ? "text-parchment/70"
+                        : "text-parchment/90"
+                } ${file ? "hover:text-brass" : ""}`;
+                return file ? (
+                  <button
                     key={li}
+                    type="button"
                     onClick={() => jump(si, li)}
+                    aria-label={`Ir al verso ${si + 1}.${li + 1}`}
                     data-testid={isCurrent ? "current-line" : undefined}
-                    className={`font-serif-ed text-lg italic leading-relaxed transition-all duration-500 sm:text-xl ${file ? "cursor-pointer" : ""} ${
-                      isCurrent
-                        ? "translate-x-1 text-brass"
-                        : isPast
-                          ? "text-parchment/45"
-                          : live
-                            ? "text-parchment/70"
-                            : "text-parchment/90"
-                    } ${file ? "hover:text-brass" : ""}`}
+                    className={buttonClass}
                   >
+                    {line}
+                  </button>
+                ) : (
+                  <p key={li} className={buttonClass} data-testid={isCurrent ? "current-line" : undefined}>
                     {line}
                   </p>
                 );
