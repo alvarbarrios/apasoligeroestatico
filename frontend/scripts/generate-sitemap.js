@@ -65,9 +65,10 @@ for (const [key, song] of Object.entries(archive.songs || {})) {
 
 const xmlEscape = (value) =>
   value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const withTrailingSlash = (route) => (route === "/" ? "/" : `${route}/`);
 const sitemapEntries = [...routes.keys()]
   .sort((a, b) => a.localeCompare(b))
-  .map((route) => `  <url><loc>${xmlEscape(`${siteUrl}${route}`)}</loc></url>`)
+  .map((route) => `  <url><loc>${xmlEscape(`${siteUrl}${withTrailingSlash(route)}`)}</loc></url>`)
   .join("\n");
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapEntries}\n</urlset>\n`;
 fs.writeFileSync(path.join(publicDir, "sitemap.xml"), sitemap);
@@ -102,12 +103,12 @@ if (process.argv.includes("--postbuild")) {
     html = replaceMeta(html, "name", "description", meta.description.slice(0, 160));
     html = replaceMeta(html, "property", "og:title", meta.title);
     html = replaceMeta(html, "property", "og:description", meta.description.slice(0, 160));
-    html = replaceMeta(html, "property", "og:url", `${siteUrl}${route}`);
+    html = replaceMeta(html, "property", "og:url", `${siteUrl}${withTrailingSlash(route)}`);
     html = replaceMeta(html, "name", "twitter:title", meta.title);
     html = replaceMeta(html, "name", "twitter:description", meta.description.slice(0, 160));
     html = html.replace(
       /<link rel="canonical" href="[^"]*"\s*\/?>/,
-      `<link rel="canonical" href="${siteUrl}${route}" />`,
+      `<link rel="canonical" href="${siteUrl}${withTrailingSlash(route)}" />`,
     );
     const outputDir = path.join(buildDir, ...route.split("/").filter(Boolean));
     if (route !== "/") fs.mkdirSync(outputDir, { recursive: true });

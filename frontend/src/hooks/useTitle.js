@@ -42,7 +42,7 @@ export default function useTitle(title, pageDescription) {
     }
     description = description.slice(0, 160);
     const normalizedPath = pathname === "/" ? "/" : pathname.replace(/\/+$/, "");
-    const url = `${SITE_URL}${normalizedPath}`;
+    const url = `${SITE_URL}${normalizedPath === "/" ? "/" : `${normalizedPath}/`}`;
     const privatePage = pathname === "/admin" || pathname.startsWith("/imprimir/") || title === "404";
 
     document.title = pageTitle;
