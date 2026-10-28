@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "include": ["/imprimir/*", "/libro-de-visitas/firma/*"],
+  "exclude": []
+}
