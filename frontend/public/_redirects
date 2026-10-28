@@ -1,3 +1,4 @@
+# SPA: rutas dinámicas de impresión y firma del libro. Pages no admite rewrites 404 en
+# _redirects: las URLs sin asset ni regla reciben /404.html con 404 automáticamente.
 /imprimir/*  /index.html  200
 /libro-de-visitas/firma/*  /index.html  200
-/*  /404.html  404
