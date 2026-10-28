@@ -12,7 +12,7 @@ export default function HimnosGroup() {
   const g = getHimnosGroup(group);
   const meta = HIMNOS_META[group] || {};
   const [q, setQ] = useState("");
-  useTitle(g ? (meta.short || g.title) : "Himnos");
+  useTitle(g ? g.title : "Himnos");
 
   const items = useMemo(() => {
     if (!g) return [];

@@ -124,14 +124,6 @@ export default function Header() {
                 {l.label}
               </NavLink>
             ))}
-            <Link
-              to="/libro-de-visitas"
-              onClick={() => setOpen(false)}
-              data-testid="mobile-nav-link-libro"
-              className="flex items-center gap-3 border-l-2 border-transparent px-3 py-2.5 font-mono text-xs uppercase tracking-[0.18em] text-sage"
-            >
-              <span className="text-khaki">09</span> Libro de Visitas
-            </Link>
           </div>
         </nav>
       )}

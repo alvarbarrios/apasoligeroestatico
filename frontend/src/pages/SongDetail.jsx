@@ -16,7 +16,7 @@ export default function SongDetail({ section, base, crumb }) {
   const isHimno = section === "himnos";
   const key = isHimno ? `himnos/${group}/${slug}` : `${section}/${slug}`;
   const song = data.songs[key];
-  useTitle(song ? song.title : "Registro");
+  useTitle(song ? (song.docTitle || song.title) : "Registro");
 
   if (!song && !ready) {
     return (
