@@ -33,7 +33,13 @@ const server = http.createServer((req, res) => {
   const puppeteer = require("puppeteer");
   await new Promise((r) => server.listen(0, r));
   const port = server.address().port;
-  const browser = await puppeteer.launch({ headless: "shell", args: ["--no-sandbox", "--disable-dev-shm-usage"] });
+  let browser;
+  try {
+    browser = await puppeteer.launch({ headless: "shell", args: ["--no-sandbox", "--disable-dev-shm-usage"] });
+  } catch (e) {
+    console.error("prerender: no se pudo lanzar Chrome (¿falta chrome-headless-shell en caché de CI?): " + e.message);
+    process.exit(1);
+  }
 
   let idx = 0, done = 0; const fails = []; const stuck = []; const allRoutes = [...routes];
   async function worker() {

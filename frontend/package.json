@@ -65,7 +65,7 @@
     "start": "craco start",
     "prebuild": "node scripts/generate-sitemap.js",
     "build": "craco build",
-    "postbuild": "node scripts/generate-sitemap.js --postbuild && node scripts/prerender.js",
+    "postbuild": "node scripts/generate-sitemap.js --postbuild && npx puppeteer browsers install chrome-headless-shell && node scripts/prerender.js",
     "test": "craco test"
   },
   "browserslist": {
