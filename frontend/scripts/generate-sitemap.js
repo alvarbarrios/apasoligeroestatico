@@ -66,6 +66,53 @@ for (const [key, song] of Object.entries(archive.songs || {})) {
 const xmlEscape = (value) =>
   value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const withTrailingSlash = (route) => (route === "/" ? "/" : `${route}/`);
+
+// JSON-LD por ruta: migas de pan en todas las páginas (menos la portada, que ya lleva
+// el grafo WebSite/Person de la plantilla), CollectionPage en secciones y grupos, y
+// MusicComposition en fichas de cancion + MusicRecording SOLO cuando hay audio real.
+const segmentLabels = {
+  canciones: "Canciones", himnos: "Himnos militares", "paso-ligero": "Canciones de paso ligero",
+  otras: "Otras canciones militares", corneta: "Toques de corneta", cornetin: "Toques de cornetín",
+  internacional: "Cancionero militar internacional", audios: "Archivo de audios militares",
+  lemas: "Lemas", "libro-de-visitas": "Libro de visitas", enlaces: "Enlaces de interés",
+  contacto: "Contacto", "privacidad-cookies": "Privacidad y cookies",
+};
+const breadcrumbLd = (route, title) => {
+  const segs = route.split("/").filter(Boolean);
+  const items = [{ "@type": "ListItem", position: 1, name: "Inicio", item: `${siteUrl}/` }];
+  segs.forEach((seg, i) => {
+    const prefix = "/" + segs.slice(0, i + 1).join("/");
+    const isLast = i === segs.length - 1;
+    const entry = routes.get(prefix);
+    const name = isLast ? title : ((entry && entry.title) || segmentLabels[seg] || seg);
+    items.push({ "@type": "ListItem", position: i + 2, name, item: `${siteUrl}${withTrailingSlash(prefix)}` });
+  });
+  return { "@type": "BreadcrumbList", itemListElement: items };
+};
+const songKeyFor = (route) => {
+  const m = route.match(/^\/canciones\/(paso-ligero|otras)\/([^/]+)$/);
+  if (m) return `${m[1] === "paso-ligero" ? "pasoligero" : "otras"}/${decodeURIComponent(m[2])}`;
+  const h = route.match(/^\/canciones\/himnos\/([^/]+)\/([^/]+)$/);
+  if (h) return `himnos/${decodeURIComponent(h[1])}/${decodeURIComponent(h[2])}`;
+  return null;
+};
+const jsonLdFor = (route, meta) => {
+  if (route === "/") return "";
+  const pageUrl = `${siteUrl}${withTrailingSlash(route)}`;
+  const graph = [breadcrumbLd(route, meta.title)];
+  const song = songKeyFor(route) ? archive.songs[songKeyFor(route)] : null;
+  if (song) {
+    const compId = `${pageUrl}#composicion`;
+    graph.unshift({ "@type": "MusicComposition", "@id": compId, name: song.title, url: pageUrl, inLanguage: "es", genre: "M\u00fasica militar", isPartOf: { "@id": `${siteUrl}/#website` } });
+    const audio = (song.audios || [])[0];
+    if (audio && audio.file) {
+      graph.splice(1, 0, { "@type": "MusicRecording", "@id": `${pageUrl}#grabacion`, name: song.title, url: pageUrl, contentUrl: `${siteUrl}${audio.file}`, encodingFormat: "audio/mpeg", inLanguage: "es", recordingOf: { "@id": compId } });
+    }
+  } else {
+    graph.unshift({ "@type": "CollectionPage", "@id": `${pageUrl}#pagina`, name: meta.title, description: meta.description, url: pageUrl, inLanguage: "es", isPartOf: { "@id": `${siteUrl}/#website` } });
+  }
+  return `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c")}</script>`;
+};
 const sitemapEntries = [...routes.keys()]
   .sort((a, b) => a.localeCompare(b))
   .map((route) => `  <url><loc>${xmlEscape(`${siteUrl}${withTrailingSlash(route)}`)}</loc></url>`)
@@ -110,6 +157,8 @@ if (process.argv.includes("--postbuild")) {
       /<link rel="canonical" href="[^"]*"\s*\/?>/,
       `<link rel="canonical" href="${siteUrl}${withTrailingSlash(route)}" />`,
     );
+    const ld = jsonLdFor(route, meta);
+    if (ld) html = html.replace("</head>", `${ld}</head>`);
     const outputDir = path.join(buildDir, ...route.split("/").filter(Boolean));
     if (route !== "/") fs.mkdirSync(outputDir, { recursive: true });
     fs.writeFileSync(path.join(route === "/" ? buildDir : outputDir, "index.html"), html);

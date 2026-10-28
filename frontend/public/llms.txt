@@ -1,0 +1,20 @@
+# A Paso Ligero .com
+
+> Archivo de música militar española: letras de canciones de paso ligero, himnos de los Ejércitos, la Armada y la Guardia Civil, toques de corneta, marchas y lemas de unidades. Las fichas incluyen la letra completa y, cuando existe, el audio en MP3 y una hoja imprimible.
+
+## Secciones
+
+- [Canciones](https://www.apasoligero.com/canciones/): índice del cancionero por secciones.
+- [Himnos militares](https://www.apasoligero.com/canciones/himnos/): himnos de España y de unidades, agrupados por cuerpo.
+- [Canciones de paso ligero](https://www.apasoligero.com/canciones/paso-ligero/): canciones militares para cantar en unidad.
+- [Otras canciones militares](https://www.apasoligero.com/canciones/otras/): canciones y miscelánea militar.
+- [Toques de corneta](https://www.apasoligero.com/canciones/corneta/): señales de corneta con audio y significado.
+- [Cancionero internacional](https://www.apasoligero.com/canciones/internacional/): canciones militares de otros países.
+- [Lemas de unidades](https://www.apasoligero.com/lemas/): lemas en español y latín de unidades de las Fuerzas Armadas.
+- [Archivo de audios](https://www.apasoligero.com/audios/): audios MP3 de canciones, himnos y toques.
+- [Contacto](https://www.apasoligero.com/contacto/): envío de canciones y correcciones.
+
+## Notas
+
+- El contenido íntegro de cada página está en el HTML; no hace falta ejecutar JavaScript.
+- Sitemap XML: https://www.apasoligero.com/sitemap.xml
