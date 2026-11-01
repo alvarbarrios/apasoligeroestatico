@@ -169,6 +169,12 @@ export default function SongDetail({ section, base, crumb }) {
           className="lg:col-span-8"
         >
           <SyncedLyrics song={song} />
+          {song.source && (
+            <div className="mt-14 border-t border-olive-600/60 pt-6" data-testid="song-source">
+              <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-khaki">Fuente</p>
+              <p className="mt-2 text-sm leading-relaxed text-sage">{song.source}</p>
+            </div>
+          )}
           <div className="mt-14 flex items-center justify-between gap-4 border-t border-olive-600/60 pt-6">
             {prev ? (
               <Link

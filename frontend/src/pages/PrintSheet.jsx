@@ -84,6 +84,13 @@ export default function PrintSheet() {
           ))}
         </div>
 
+        {song.source && (
+          <div className="mt-6 border-t border-black/20 pt-3" data-testid="print-source">
+            <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-black/60">Fuente</p>
+            <p className="mt-1 text-[0.8em] text-black/80">{song.source}</p>
+          </div>
+        )}
+
         {song.notes.length > 0 && (
           <div className="mt-6 border-t border-black/20 pt-3">
             <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-black/60">Notas</p>
